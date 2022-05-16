@@ -1,0 +1,26 @@
+{
+	"version": "1.0.0",
+	"name": "Hi Weather",
+	"description": "Weather app that looks familiar.",
+	"launch_path": "/index.html",
+	"icons": {
+		"120": "/img/app_icon.png"
+	},
+	"developer": {
+		"name": "Cyan",
+		"url": "http://cyan-2048.github.io"
+	},
+	"type": "web",
+	"origin": "app://hiweather.bananahackers.net",
+	"permissions": {
+		"geolocation": {}
+	},
+	"installs_allowed_from": ["*"],
+	"locales": {
+		"en": {
+			"name": "Hi Weather",
+			"description": "familiar weather app."
+		}
+	},
+	"default_locale": "en"
+}

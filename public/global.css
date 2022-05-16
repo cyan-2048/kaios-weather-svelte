@@ -1,0 +1,43 @@
+*,
+*::before,
+*::after {
+	font-family: "Open Sans", sans-serif;
+	box-sizing: border-box;
+	background-repeat: no-repeat;
+}
+
+body::after {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+	z-index: -1;
+	content: url(/img/add.png) url(/img/add_hov.png) url(/img/card_day.png) url(/img/card_night.png) url(/img/degrees.png) url(/img/degrees_checked.png) url(/img/done.png)
+		url(/img/done_hov.png) url(/img/navigate.svg) url(/img/options_bg.png) url(/img/titlebar.png) url(/img/_bottom.png) url(/img/_center.png) url(/img/_top.png);
+}
+
+body,
+html {
+	padding: 0;
+	margin: 0;
+	width: 100vw;
+	height: 100vh;
+	overflow: hidden;
+	background-color: black;
+}
+
+html {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+body {
+	width: 240px;
+	height: 294px;
+	position: relative;
+}
+
+:focus {
+	outline: none;
+}
