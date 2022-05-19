@@ -1,17 +1,3 @@
-const baseURLs = {
-	owm: "https://api.openweathermap.org/data/2.5/",
-};
-
-const keys = {
-	owm: "0ab18107684f7284d695f3c4db4a2263",
-};
-
-async function getData_legacy(lat, lon) {
-	let responseData = await fetch(baseURLs.owm + `onecall?lat=${lat}&lon=${lon}&appid=${keys.owm}&exclude=minutely,hourly,alerts&units=metric`);
-	let data = await responseData.json();
-	return data;
-}
-
 function convertTo24(time, modifier) {
 	let hours = Number(time.split(":")[0]);
 	if (hours === 12) hours = 0;
@@ -111,7 +97,7 @@ function mapWeather(a) {
 
 async function getData() {
 	let query = [...arguments].join(",");
-	let responseData = await fetch("https://weatherdbi.herokuapp.com/data/weather/" + encodeURIComponent(query));
+	let responseData = await fetch("https://weather.cyan-2048.workers.dev/" + encodeURIComponent(query));
 	let data = await responseData.json();
 	if (data.status === "fail") {
 		console.error(data);
