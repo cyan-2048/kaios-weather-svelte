@@ -16,8 +16,8 @@
 		text = "Validating city...";
 		let raw = await search(e);
 		results = raw.map((a) => {
-			let { Latitude: lat, Longitude: lon } = a.GeoPosition;
-			return { name: a.EnglishName + ", " + a.Country.EnglishName, lat, lon };
+			let { longitude: lon, latitude: lat, name: city, region, countryCode } = a;
+			return { name: [city, region, countryCode].join(", "), lat, lon };
 		});
 		text = def;
 	};
@@ -33,11 +33,11 @@
 	$: hidden && hide();
 	$: !hidden && setTimeout(() => document.getElementById("search_input").focus(), 400);
 
-	window.addEventListener("keydown", (e) => {
+	let sel = (e) => {
 		if (hidden) return;
 		let { key, target } = e;
 
-		if (key === "Enter") {
+		if (key === "Enter" || e.type == "click") {
 			if (target.id !== "search_input") {
 				selected = Number(target.tabIndex);
 				dispatch("add", { ...target.dataset });
@@ -68,7 +68,9 @@
 				setTimeout(() => el.focus(), 50);
 			}
 		}
-	});
+	};
+
+	window.addEventListener("keydown", sel);
 
 	let oninput = (e) => {
 		clearTimeout(timeout);
@@ -83,12 +85,12 @@
 			<div class="input_wrapper">
 				<input on:input={oninput} id="search_input" type="text" />
 			</div>
-			<button>Cancel</button>
+			<button on:click={() => dispatch("hide")} id="cancel">Cancel</button>
 		</div>
 	</div>
 	<div id="search_container" class="container">
 		{#each results as result, i}
-			<div class={selected === i ? "select" : ""} data-name={result.name.split(", ")[0]} data-lat={result.lat} data-lon={result.lon} tabindex={i}>{result.name}</div>
+			<div on:click={sel} class={selected === i ? "select" : ""} data-name={result.name.split(", ")[0]} data-lat={result.lat} data-lon={result.lon} tabindex={i}>{result.name}</div>
 		{/each}
 	</div>
 </main>

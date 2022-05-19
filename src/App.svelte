@@ -106,9 +106,14 @@
 			{#each array as data, i}
 				<Card on:retry={() => (retry = false)} {retry} {fahrenheit} on:update={(e) => handleUpdate(i, e)} {data} selected={selected === i}>
 					<div class="card_bottom">
-						<div class="retry" />
+						<div
+							class="retry"
+							on:click={() => {
+								if (!retry) retry = true;
+							}}
+						/>
 						<div class="card_center"><b>Updated</b> {$store.lastUpdate.date} <b>{$store.lastUpdate.time}</b></div>
-						<div class="info" />
+						<div class="info" on:click={() => (flip = flip == "front" ? "back" : "front")} />
 					</div>
 				</Card>
 			{/each}

@@ -12,8 +12,12 @@
 		degrees: false,
 	};
 
+	let longpress = false;
+	let timeout;
+
 	window.addEventListener("keydown", (e) => {
 		if (hidden) return;
+		timeout = setTimeout(() => (longpress = true), 400);
 		let { key } = e;
 		if (/SoftLeft|-/.test(key)) {
 			hover.add = true;
@@ -27,28 +31,40 @@
 		}
 	});
 	window.addEventListener("keyup", () => {
+		if (hidden) return;
+		clearTimeout(timeout);
+
 		Object.keys(hover).forEach((e) => {
-			if (hover[e]) dispatch(e);
+			if (hover[e] && !longpress) dispatch(e);
 			hover[e] = false;
 		});
+
+		if (longpress) {
+			longpress = false;
+			console.log("long press!");
+		}
 	});
+
+	function onclick() {
+		dispatch(this.id);
+	}
 </script>
 
 <main>
 	<header>
-		<button class={hover.add ? "hover" : ""} id="add" />
+		<button on:click={onclick} class={hover.add ? "hover" : ""} id="add" />
 		Weather
-		<button class={hover.done ? "hover" : ""} id="done">Done</button>
+		<button on:click={onclick} class={hover.done ? "hover" : ""} id="done">Done</button>
 	</header>
 	<div class="cities">
 		{#each data.slice(1) as o, i}
-			<div tabindex="{i}}">{o.name || "..."}</div>
+			<div tabindex={i}>{o.name || "..."}</div>
 		{/each}
 		{#each [...Array(data.slice(1).length < 8 ? 8 - data.length : 0)] as e}
 			<div class="filler" />
 		{/each}
 	</div>
-	<div class={degrees ? "checked" : ""} id="degrees">
+	<div on:click={onclick} class={degrees ? "checked" : ""} id="degrees">
 		<div />
 	</div>
 </main>

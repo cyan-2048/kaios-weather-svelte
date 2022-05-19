@@ -1,6 +1,6 @@
 <script>
 	export let selected;
-	export let data = [];
+	export let data = {};
 	export let fahrenheit;
 	export let retry;
 	import Forecast from "./Forecast.svelte";
@@ -15,42 +15,48 @@
 	}
 
 	let update = async () => {
-		try {
-			let { longitude, latitude, name, type, data: info } = data;
-			if (type === "locate") {
-				let { longitude, latitude } = await getLocation();
-				let wait = await getData(latitude, longitude);
-				let name = await getName(latitude, longitude);
-				console.log(wait);
-				let { current, daily } = wait;
-				dispatch("update", { ...data, name, latitude, longitude, current, daily, data: wait });
-			} else if (longitude && latitude) {
-				let wait = await getData(latitude, longitude);
-				let n = name ? name : await getName(latitude, longitude);
-				console.log(wait);
-				let { current, daily } = wait;
-				dispatch("update", { ...data, name: n, current, daily, data: wait });
-			} else if (name) {
-				let find = await search(name);
-				let { Latitude: latitude, Longitude: longitude } = find[0].GeoPosition;
-				let wait = await getData(latitude, longitude);
-				let name = await getName(latitude, longitude);
-				console.log(wait);
-				let { current, daily } = wait;
-				dispatch("update", { ...data, name, latitude, longitude, current, daily, data: wait });
-			}
-		} catch (e) {
-			console.error(e);
+		let { longitude, latitude, name, type, region } = data;
+
+		async function locate() {
+			let { longitude, latitude } = await getLocation();
+			let wait = await getData(latitude, longitude);
+			if (!wait) return;
+			let name = await getName(latitude, longitude);
+			console.log(wait);
+			dispatch("update", { ...data, name, ...wait });
 		}
+
+		async function findName(e) {
+			let find = await search(e || name || region);
+			name = find[0].name;
+			let wait = await getData(name || e || region);
+			if (!wait) return;
+			dispatch("update", { ...data, name, ...wait });
+		}
+		async function latlong() {
+			let wait = await getData(latitude, longitude);
+			let n = name && name !== "..." ? name : await getName(latitude, longitude);
+			if (!wait) {
+				findName(n);
+			} else {
+				console.log(wait);
+				dispatch("update", { ...data, name: n, ...wait });
+			}
+		}
+
+		if (type === "locate") locate();
+		else if (longitude && latitude) latlong();
+		else if (name) findName();
 	};
 
 	setTimeout(update, 100);
 
 	$: retry === true && update(), dispatcher("retry");
+	$: current = (data && data.current) || {};
 
 	let getWeather = () => {
 		let current = data.current?.weather[0];
-		return current ? current : { id: 300, main: "Drizzle", description: "light intensity drizzle", icon: "09d" };
+		return current ? current : { day: true, temp: 31, icon: "02" };
 	};
 
 	let degrees = (e) => {
@@ -59,20 +65,16 @@
 	};
 </script>
 
-<main class="{selected ? 'card_selected' : ''} {getWeather().icon.endsWith('d') ? '' : 'dark'}">
-	<img src="/img/weather/{getWeather().icon}.png" alt="{getWeather().description}}" />
+<main class="{selected ? 'card_selected' : ''} {current.day ? '' : 'dark'}">
+	<img src="/img/weather/{current.icon + (current.day ? 'd' : 'n')}.png" alt={current.description} />
 	<div class="wrapper">
-		<div class="top {getWeather().icon.endsWith('n') ? 'dark' : ''}">
-			<div class="city">{data.name || "..."}</div>
-			<div class="temperature">{degrees(data.current?.temp)}</div>
+		<div class="top {current.day ? '' : 'dark'}">
+			<div class="city">{data.name || data.region || "..."}</div>
+			<div class="temperature">{degrees(current.temp)}</div>
 		</div>
 		<div class="container">
-			{#each (data?.daily || []).slice(1).map((a) => {
-				let { min, max } = a.temp;
-				let { icon } = a.weather[0];
-				return { min, max, icon, day: new Date(a.dt * 1000).toLocaleDateString([], { weekday: "long" }) };
-			}) as o}
-				<Forecast dark={(getWeather().icon || "d").endsWith("n")} min={o.min || "??"} max={o.max || "??"} icon={o.icon} day={o.day || "??"} {fahrenheit} />
+			{#each (data.daily || []).slice(1) as o}
+				<Forecast dark={!current.day} min={o.min_temp || "??"} max={o.max_temp || "??"} icon={o.icon + "d"} day={o.day || "??"} {fahrenheit} />
 			{/each}
 		</div>
 	</div>
@@ -112,9 +114,11 @@
 		position: absolute;
 		height: 70px;
 		top: -2px;
-		width: 100%;
+		width: 240px;
 		margin-left: -12px;
 		object-fit: contain;
+		text-align: center;
+		line-height: 5.2;
 	}
 
 	div.wrapper {
